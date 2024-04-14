@@ -20,7 +20,7 @@ always @(posedge clk) begin
     $strobe("taken = %b target = %h", branch_taken, branch_target);
 `endif
 end
-p
+
 wire [31:0]instr = instr_data;
 assign instr_addr = pc_next;
 
@@ -48,7 +48,7 @@ wire [2:0]alu_op;
 alu alu(
     .src_a(rf_rdata0), .src_b(alu_b_src),
     .alucontrol(alu_op),
-    .res(alu_result)
+    .result(alu_result)
 );
 
 reg_file rf(
@@ -77,8 +77,8 @@ control control(
     .alu_src(has_imm),
     .mem_we(mem_we),
 
-    .branch(branch_taken)
-    .jump(jump)
+    .branch(branch_taken),
+    .jump(jump),
     .jump_reg(jump_reg)
 );
 

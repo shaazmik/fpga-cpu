@@ -4,7 +4,7 @@ module cpu_top(
     output [15:0]data_out
 );
 
-wire [31:0]instr_addr;cpu_top
+wire [31:0]instr_addr;
 wire [31:0]instr_data;
 rom rom(.clk(clk), .addr(instr_addr), .q(instr_data));
 

@@ -7,7 +7,7 @@ module control(
     output reg alu_src,
     output reg mem_we,
 
-    output reg branch
+    output reg branch,
     output reg jump,
     output reg jump_reg
 );
