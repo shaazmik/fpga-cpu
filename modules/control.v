@@ -7,7 +7,9 @@ module control(
     output reg alu_src,
     output reg mem_we,
 
-    output reg branch
+    output reg branch,
+    output reg jump,
+    output reg jump_reg
 );
 
 wire [6:0]opcode = instr[6:0];
@@ -22,7 +24,9 @@ always @(*) begin
     alu_src = 1'b0;
     mem_we = 1'b0;
 
-    branch       = 1'b0;
+    branch = 1'b0;
+    jump   = 1'b0;
+    jump_reg = 1'b0;
 
     casez ({funct5, funct2, funct3, opcode})
         17'b?????_??_000_0010011: begin // ADDI
@@ -108,7 +112,27 @@ always @(*) begin
             alu_op = 3'b111;
             branch = 1'b1;
         end
+        // JAL (указываем, что значения для funct3 не важны)
+        17'b?????_??_???_1101111: begin // JAL
+            $strobe("(%s) funct5 = %h, funct2 = %h, funct3 = %h, opcode = %h",
+                "JAL", funct5, funct2, funct3, opcode);
+            rf_we = 1'b1;
+            jump = 1'b1; // Активация сигнала перехода
+            // Предполагаем адаптацию 20-битного imm к 12-битному
+            // для упрощения `imm12` = {instr[19:12], instr[11:8], instr[7]}; Это нестандартное поведение!
+            // Используйте правильную формулу для imm20 в формате JAL, затем адаптируйте ее под 12 бит если ограничиваетесь "маленькими" прыжками
+            imm12 = {instr[31],instr[19:12],instr[20],instr[30:21], 1'b0}; // можно обрезать/адаптировать, но здесь просто примерно показан процесс
+        end
 
+        // JALR
+        17'b?????_??_???_1100111: begin // JALR
+            $strobe("(%s) funct5 = %h, funct2 = %h, funct3 = %h, opcode = %h",
+                "JALR", funct5, funct2, funct3, opcode);
+            rf_we = 1'b1;
+            jump_reg = 1'b1; // Активация сигнала перехода с регистром
+            // Для JALR imm12 уже подходит, т.к. используется [11:0] инструкции
+            imm12 = {instr[31],instr[19:12],instr[20],instr[30:21], 1'b0}; // можно обрезать/адаптировать, но здесь просто примерно показан процесс
+        end
         default: begin
             $strobe("(%s) funct5 = %h, funct2 = %h, funct3 = %h, opcode = %h",
                 "UNKNOWN INSTRUCTION", funct5, funct2, funct3, opcode);

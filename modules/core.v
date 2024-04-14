@@ -10,7 +10,7 @@ module core(
 );
 
 reg [31:0]pc = 32'hFFFFFFFF;
-wire [31:0]pc_target = branch_taken ? branch_target : (pc + 1);
+wire [31:0]pc_target = branch_taken ? branch_target : jump ? jump_target: jump_reg ? jump_reg_target : pc + 1;
 wire [31:0]pc_next = (pc == last_pc) ? pc : pc_target;
 
 always @(posedge clk) begin
@@ -67,6 +67,9 @@ wire cmp_res = alu_result != 0;
 wire branch_taken = branch & cmp_res;
 wire [31:0]branch_target = pc + imm32;
 
+wire [31:0]jump_target = pc + (imm32 >> 2);
+wire [31:0]jump_reg_target = rf_rdata0 + (imm32 >> 2);
+
 
 control control(
     .instr(instr),
@@ -76,7 +79,9 @@ control control(
     .alu_src(has_imm),
     .mem_we(mem_we),
 
-    .branch(branch)
+    .branch(branch),
+    .jump(jump),
+    .jump_reg(jump_reg)
 );
 
 endmodule
