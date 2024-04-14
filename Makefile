@@ -1,28 +1,20 @@
-all: help
+PSET := pset09
 
-MODULES_DIR = modules
-BUILD_DIR = build
-PROJECT = cpu
+test: $(PSET)
+	./$(PSET)
 
-EXECUTABLE = $(BUILD_DIR)/$(PROJECT).executable
-
-test: $(BUILD_DIR) $(EXECUTABLE)
-	./$(EXECUTABLE)
-	gtkwave dump.vcd
-
-$(EXECUTABLE): $(wildcard $(MODULES_DIR)/*.v)
-	iverilog $(^) -o $(@)
-
-$(BUILD_DIR):
-	mkdir $(BUILD_DIR)
-
-.PHONY: clean test help 
+$(PSET): ./modules/testbench.v ./modules/cpu_top.v ./modules/core.v ./modules/alu.v ./modules/reg_file.v ./modules/control.v ./modules/rom.v ./modules/mem_ctrl.v
+	iverilog $^ -o $@
 
 clean:
-	- rm -r $(BUILD_DIR)
-	- rm dump.vcd
+	rm -f $(PSET)
+
+samples:
+	$(MAKE) -C samples/
 
 help:
 	@echo "  test  - Run testbench"
-	@echo "  clean - Remove generated files"
+	@echo "  clean - Remove most generated files"
 	@echo "  help  - Display this text"
+
+.PHONY: clean test help samples

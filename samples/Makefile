@@ -1,30 +1,20 @@
-RISCV_PREFIX=riscv64-linux-gnu-
+PSET := pset09
 
-AS=$(RISCV_PREFIX)as
-LD=$(RISCV_PREFIX)ld
-OBJCOPY=$(RISCV_PREFIX)objcopy
-OBJDUMP=$(RISCV_PREFIX)objdump
+test: $(PSET)
+	./$(PSET)
 
-SRCS=$(wildcard *.s)
-TXTS=$(SRCS:%.s=%.txt)
-
-all: $(TXTS)
-
-%.txt: %.bin
-	hexdump -v -e '"%08x\n"' $^ > $@
-
-%.bin: %.out
-	$(OBJCOPY) -O binary $^ $@
-
-%.out: %.o
-	$(LD) -melf32lriscv $^ -o $@ && $(OBJDUMP) -d $@
-
-%.o: %.s
-	$(AS) -march=rv32i -mabi=ilp32 -c $^ -o $@
-
-.PHONY: all clean
-
-.PRECIOUS: %.o %.out %.bin
+$(PSET): ./modules/testbench.v ./modules/cpu_top.v ./modules/core.v ./modules/alu.v ./modules/reg_file.v ./modules/control.v ./modules/rom.v ./modules/mem_ctrl.v
+	iverilog $^ -o $@
 
 clean:
-	rm -f *.o *.out *.bin *.txt
+	rm -f $(PSET)
+
+samples:
+	$(MAKE) -C samples/
+
+help:
+	@echo "  test  - Run testbench"
+	@echo "  clean - Remove most generated files"
+	@echo "  help  - Display this text"
+
+.PHONY: clean test help samples
